@@ -19,6 +19,9 @@ interface IUsualM is IERC20Metadata {
     /// @notice Emitted when address is removed from blacklist.
     event UnBlacklist(address indexed account);
 
+    /// @notice Emitted when mint cap is set.
+    event MintCapSet(uint256 newMintCap);
+
     /// @notice Emitted when token transfers/wraps are attempted by blacklisted account.
     error Blacklisted();
 
@@ -36,6 +39,15 @@ interface IUsualM is IERC20Metadata {
 
     /// @notice Emitted if Registry Access is 0x0.
     error ZeroRegistryAccess();
+
+    /// @notice Emitted if Mint Cap is exceeded.
+    error MintCapExceeded();
+
+    /// @notice Emitted if Mint Cap > 2^96 - 1.
+    error InvalidUInt96();
+
+    /// @notice Emitted if `wrap` or `unwrap` amount is 0.
+    error InvalidAmount();
 
     /* ============ Interactive Functions ============ */
 
@@ -68,6 +80,7 @@ interface IUsualM is IERC20Metadata {
 
     /**
      * @notice Unwraps `amount` UsualM from the caller into WrappedM for `recipient`.
+     * @dev Can only be called by the `USUAL_M_UNWRAP`.
      * @param  recipient The account receiving the withdrawn WrappedM.
      * @param  amount    The amount of UsualM burned.
      * @return           The amount of WrappedM withdrawn.
@@ -76,25 +89,34 @@ interface IUsualM is IERC20Metadata {
 
     /**
      * @notice Adds an address to the blacklist.
-     * @dev Can only be called by the admin.
+     * @dev Can only be called by the `BLACKLIST_ROLE`.
      * @param account The address to be blacklisted.
      */
     function blacklist(address account) external;
 
     /**
      * @notice Removes an address from the blacklist.
-     * @dev Can only be called by the admin.
+     * @dev Can only be called by the `BLACKLIST_ROLE`.
      * @param account The address to be removed from the blacklist.
      */
     function unBlacklist(address account) external;
 
     /// @notice Pauses all token transfers.
-    /// @dev Can only be called by the admin.
+    /// @dev Can only be called by the `USUAL_M_PAUSE` role.
     function pause() external;
 
     /// @notice Unpauses all token transfers.
-    /// @dev Can only be called by the admin.
+    /// @dev Can only be called by the `USUAL_M_UNPAUSE` role.
     function unpause() external;
+
+    /**
+     * @notice Sets the mint cap.
+     * @param newMintCap The new mint cap, should be different from the current value.
+     * @dev The new mint cap should be less than or equal to 2^96 - 1.
+     * @dev Can only be called by the `USUAL_M_MINTCAP_ALLOCATOR` role.
+     * @dev number of deciamls is 6 for the mint cap value.
+     **/
+    function setMintCap(uint256 newMintCap) external;
 
     /* ============ View/Pure Functions ============ */
 
@@ -106,4 +128,10 @@ interface IUsualM is IERC20Metadata {
 
     /// @notice Returns the Registry Access address.
     function registryAccess() external view returns (address);
+
+    /// @notice Returns the Mint Cap amount.
+    function mintCap() external view returns (uint256);
+
+    /// @notice Returns the available wrappable amount for the current values of `mintCap` and `totalSupply`.
+    function getWrappableAmount(uint256 amount) external view returns (uint256);
 }

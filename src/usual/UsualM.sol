@@ -18,7 +18,13 @@ import { IWrappedMLike } from "./interfaces/IWrappedMLike.sol";
 import { IUsualM } from "./interfaces/IUsualM.sol";
 import { IRegistryAccess } from "./interfaces/IRegistryAccess.sol";
 
-import { DEFAULT_ADMIN_ROLE, USUAL_M_UNWRAP, USUAL_M_PAUSE_UNPAUSE } from "./constants.sol";
+import {
+    USUAL_M_UNWRAP,
+    USUAL_M_PAUSE,
+    USUAL_M_UNPAUSE,
+    BLACKLIST_ROLE,
+    USUAL_M_MINTCAP_ALLOCATOR
+} from "./constants.sol";
 
 /**
  * @title  Usual Wrapped M Extension.
@@ -29,8 +35,12 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
 
     /// @custom:storage-location erc7201:UsualM.storage.v0
     struct UsualMStorageV0 {
+        // 1st slot
+        uint96 mintCap;
         address wrappedM;
+        // 2nd slot
         address registryAccess;
+        // next slots
         mapping(address => bool) isBlacklisted;
     }
 
@@ -38,6 +48,9 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
     // solhint-disable-next-line
     bytes32 public constant UsualMStorageV0Location =
         0xaf0b0773f61ce9af1982ff9a13506e1d8ad90f04391405f722e2ad38e8ffd300;
+
+    /// @notice The number of decimals for the UsualM token.
+    uint8 public constant DECIMALS_NUMBER = 6;
 
     /// @notice Returns the storage struct of the contract.
     /// @return $ .
@@ -47,13 +60,6 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
         assembly {
             $.slot := position
         }
-    }
-
-    modifier onlyMatchingRole(bytes32 role) {
-        UsualMStorageV0 storage $ = _usualMStorageV0();
-        if (!IRegistryAccess($.registryAccess).hasRole(role, msg.sender)) revert NotAuthorized();
-
-        _;
     }
 
     /* ============ Constructor ============ */
@@ -82,7 +88,9 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
 
     /// @inheritdoc IUsualM
     function wrap(address recipient, uint256 amount) external returns (uint256) {
-        return _wrap(wrappedM(), msg.sender, recipient, amount);
+        if (amount == 0) revert InvalidAmount();
+
+        return _wrap(msg.sender, recipient, amount);
     }
 
     /// @inheritdoc IUsualM
@@ -94,39 +102,72 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
         bytes32 r,
         bytes32 s
     ) external returns (uint256) {
-        address wrappedM_ = wrappedM();
+        if (amount == 0) revert InvalidAmount();
 
         // NOTE: `permit` call failures can be safely ignored to remove the risk of transactions being reverted due to front-run.
-        try IWrappedMLike(wrappedM_).permit(msg.sender, address(this), amount, deadline, v, r, s) {} catch {}
+        try IWrappedMLike(wrappedM()).permit(msg.sender, address(this), amount, deadline, v, r, s) {} catch {}
 
-        return _wrap(wrappedM_, msg.sender, recipient, amount);
+        return _wrap(msg.sender, recipient, amount);
     }
 
     /// @inheritdoc IUsualM
-    function unwrap(address recipient, uint256 amount) external onlyMatchingRole(USUAL_M_UNWRAP) returns (uint256) {
+    function unwrap(address recipient, uint256 amount) external returns (uint256) {
+        if (amount == 0) revert InvalidAmount();
+
+        UsualMStorageV0 storage $ = _usualMStorageV0();
+
+        // Check that caller has a valid access role before proceeding.
+        if (!IRegistryAccess($.registryAccess).hasRole(USUAL_M_UNWRAP, msg.sender)) revert NotAuthorized();
+
         return _unwrap(msg.sender, recipient, amount);
     }
 
     /* ============ Special Admin Functions ============ */
 
     /// @inheritdoc IUsualM
-    function pause() external onlyMatchingRole(USUAL_M_PAUSE_UNPAUSE) {
+    function setMintCap(uint256 newMintCap) external {
+        UsualMStorageV0 storage $ = _usualMStorageV0();
+
+        // Check that caller has a valid access role before proceeding.
+        if (!IRegistryAccess($.registryAccess).hasRole(USUAL_M_MINTCAP_ALLOCATOR, msg.sender)) revert NotAuthorized();
+
+        // Revert if the new mint cap is the same as the current mint cap.
+        if (newMintCap == $.mintCap) revert SameValue();
+
+        $.mintCap = _safe96(newMintCap);
+
+        emit MintCapSet(newMintCap);
+    }
+
+    /// @inheritdoc IUsualM
+    function pause() external {
+        UsualMStorageV0 storage $ = _usualMStorageV0();
+
+        // Check that caller has a valid access role before proceeding.
+        if (!IRegistryAccess($.registryAccess).hasRole(USUAL_M_PAUSE, msg.sender)) revert NotAuthorized();
+
         _pause();
     }
 
     /// @inheritdoc IUsualM
-    function unpause() external onlyMatchingRole(USUAL_M_PAUSE_UNPAUSE) {
+    function unpause() external {
+        UsualMStorageV0 storage $ = _usualMStorageV0();
+
+        // Check that caller has a valid access role before proceeding.
+        if (!IRegistryAccess($.registryAccess).hasRole(USUAL_M_UNPAUSE, msg.sender)) revert NotAuthorized();
+
         _unpause();
     }
 
     /// @inheritdoc IUsualM
-    /// @dev Can only be called by an account with the `DEFAULT_ADMIN_ROLE` role.
+    /// @dev Can only be called by an account with the `BLACKLIST_ROLE` role.
     function blacklist(address account) external {
         if (account == address(0)) revert ZeroAddress();
 
-        // NOTE: Avoid reading storage twice while using `onlyMatchingRole` modifier.
         UsualMStorageV0 storage $ = _usualMStorageV0();
-        if (!IRegistryAccess($.registryAccess).hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) revert NotAuthorized();
+
+        // Check that caller has a valid access role before proceeding.
+        if (!IRegistryAccess($.registryAccess).hasRole(BLACKLIST_ROLE, msg.sender)) revert NotAuthorized();
 
         // Revert in the same way as USD0 if `account` is already blacklisted.
         if ($.isBlacklisted[account]) revert SameValue();
@@ -137,13 +178,14 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
     }
 
     /// @inheritdoc IUsualM
-    /// @dev Can only be called by an account with the `DEFAULT_ADMIN_ROLE` role.
+    /// @dev Can only be called by an account with the `BLACKLIST_ROLE` role.
     function unBlacklist(address account) external {
         if (account == address(0)) revert ZeroAddress();
 
-        // NOTE: Avoid reading storage twice while using `onlyMatchingRole` modifier.
         UsualMStorageV0 storage $ = _usualMStorageV0();
-        if (!IRegistryAccess($.registryAccess).hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) revert NotAuthorized();
+
+        // Check that caller has a valid access role before proceeding.
+        if (!IRegistryAccess($.registryAccess).hasRole(BLACKLIST_ROLE, msg.sender)) revert NotAuthorized();
 
         // Revert in the same way as USD0 if `account` is not blacklisted.
         if (!$.isBlacklisted[account]) revert SameValue();
@@ -157,7 +199,7 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
 
     /// @inheritdoc IERC20Metadata
     function decimals() public pure override(ERC20Upgradeable, IERC20Metadata) returns (uint8) {
-        return 6;
+        return DECIMALS_NUMBER;
     }
 
     /// @inheritdoc IUsualM
@@ -173,29 +215,42 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
     }
 
     /// @inheritdoc IUsualM
+    function mintCap() public view returns (uint256) {
+        UsualMStorageV0 storage $ = _usualMStorageV0();
+        return $.mintCap;
+    }
+
+    /// @inheritdoc IUsualM
     function isBlacklisted(address account) external view returns (bool) {
         UsualMStorageV0 storage $ = _usualMStorageV0();
         return $.isBlacklisted[account];
     }
 
+    /// @inheritdoc IUsualM
+    function getWrappableAmount(uint256 amount) external view returns (uint256) {
+        uint256 totalSupply_ = totalSupply();
+        uint256 mintCap_ = mintCap();
+
+        return _min(amount, mintCap_ > totalSupply_ ? mintCap_ - totalSupply_ : 0);
+    }
+
     /* ============ Internal Interactive Functions ============ */
 
     /**
-     * @dev    Wraps `amount` M from `account` into UsualM for `recipient`.
-     * @param  wrappedM_   The address of the WrappedM token.
-     * @param  account    The account from which M is deposited.
+     * @dev    Wraps `amount` WrappedM from `account` into UsualM for `recipient`.
+     * @param  account    The account from which WrappedM is deposited.
      * @param  recipient  The account receiving the minted UsualM.
      * @param  amount     The amount of WrappedM deposited.
      * @return wrapped    The amount of UsualM minted.
      */
-    function _wrap(
-        address wrappedM_,
-        address account,
-        address recipient,
-        uint256 amount
-    ) internal returns (uint256 wrapped) {
+    function _wrap(address account, address recipient, uint256 amount) internal returns (uint256 wrapped) {
+        UsualMStorageV0 storage $ = _usualMStorageV0();
+
+        // Check if the new total supply would exceed the mint cap.
+        if (totalSupply() + amount > $.mintCap) revert MintCapExceeded();
+
         // NOTE: The behavior of `IWrappedMLike.transferFrom` is known, so its return can be ignored.
-        IWrappedMLike(wrappedM_).transferFrom(account, address(this), amount);
+        IWrappedMLike($.wrappedM).transferFrom(account, address(this), amount);
 
         _mint(recipient, wrapped = amount);
     }
@@ -229,5 +284,16 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
         if ($.isBlacklisted[from] || $.isBlacklisted[to]) revert Blacklisted();
 
         ERC20PausableUpgradeable._update(from, to, amount);
+    }
+
+    /// @dev Compares two uint256 values and returns the lesser one.
+    function _min(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a < b ? a : b;
+    }
+
+    /// @dev Converts a uint256 to a uint96, reverting if the conversion without loss is not possible.
+    function _safe96(uint256 n) internal pure returns (uint96) {
+        if (n > type(uint96).max) revert InvalidUInt96();
+        return uint96(n);
     }
 }
