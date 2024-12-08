@@ -131,7 +131,4 @@ interface IUsualM is IERC20Metadata {
 
     /// @notice Returns the Mint Cap amount.
     function mintCap() external view returns (uint256);
-
-    /// @notice Returns the available wrappable amount for the current values of `mintCap` and `totalSupply`.
-    function getWrappableAmount(uint256 amount) external view returns (uint256);
 }

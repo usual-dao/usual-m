@@ -226,14 +226,6 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
         return $.isBlacklisted[account];
     }
 
-    /// @inheritdoc IUsualM
-    function getWrappableAmount(uint256 amount) external view returns (uint256) {
-        uint256 totalSupply_ = totalSupply();
-        uint256 mintCap_ = mintCap();
-
-        return _min(amount, mintCap_ > totalSupply_ ? mintCap_ - totalSupply_ : 0);
-    }
-
     /* ============ Internal Interactive Functions ============ */
 
     /**
@@ -284,11 +276,6 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
         if ($.isBlacklisted[from] || $.isBlacklisted[to]) revert Blacklisted();
 
         ERC20PausableUpgradeable._update(from, to, amount);
-    }
-
-    /// @dev Compares two uint256 values and returns the lesser one.
-    function _min(uint256 a, uint256 b) internal pure returns (uint256) {
-        return a < b ? a : b;
     }
 
     /// @dev Converts a uint256 to a uint96, reverting if the conversion without loss is not possible.

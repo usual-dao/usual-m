@@ -445,25 +445,6 @@ contract UsualMUnitTests is Test {
         _usualM.setMintCap(100e6);
     }
 
-    /* ============ wrappable amount ============ */
-    function test_getWrappableAmount() external {
-        vm.prank(_mintCapAllocator);
-        _usualM.setMintCap(100e6);
-
-        // Initially, wrappable amount should be the full mint cap
-        assertEq(_usualM.getWrappableAmount(100e6), 100e6);
-
-        // Wrap some tokens
-        vm.prank(_alice);
-        _usualM.wrap(_alice, 10e6);
-
-        // Check wrappable amount with amount exceeding difference between mint cap and total supply
-        assertEq(_usualM.getWrappableAmount(100e6), 90e6);
-
-        // Check wrappable amount with amount less than difference between mint cap and total supply
-        assertEq(_usualM.getWrappableAmount(20e6), 20e6);
-    }
-
     /* ============ utils ============ */
     function _resetInitializerImplementation(address implementation) internal {
         // keccak256(abi.encode(uint256(keccak256("openzeppelin.storage.Initializable")) - 1)) & ~bytes32(uint256(0xff))
