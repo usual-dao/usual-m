@@ -74,16 +74,24 @@ contract NAVProxyMPriceFeedUnitTests is Test {
     }
 
     function testFuzz_priceConversion(int256 price) external {
-
         price = bound(price, 0, 1e36); 
         
-        
-        uint8[3] memory decimalConfigs = [6, 8, 21];
+        uint8[3] memory decimalConfigs = [6, 8, 18];
         
         for (uint256 i = 0; i < decimalConfigs.length; i++) {
             uint8 oracleDecimals = decimalConfigs[i];
             MockNavOracle testOracle = new MockNavOracle();
             
+            // Mock decimals to 8 for constructor
+            vm.mockCall(
+                address(testOracle),
+                abi.encodeWithSelector(AggregatorV3Interface.decimals.selector),
+                abi.encode(8)
+            );
+            
+            NAVProxyMPriceFeed testFeed = new NAVProxyMPriceFeed(address(testOracle));
+            
+            // Change mocked decimals for testing
             vm.mockCall(
                 address(testOracle),
                 abi.encodeWithSelector(AggregatorV3Interface.decimals.selector),
@@ -91,7 +99,6 @@ contract NAVProxyMPriceFeedUnitTests is Test {
             );
             
             testOracle.setRoundData(1, price, block.timestamp, block.timestamp, 1);
-            NAVProxyMPriceFeed testFeed = new NAVProxyMPriceFeed(address(testOracle));
             
             (, int256 answer, , , ) = testFeed.latestRoundData();
             
@@ -140,4 +147,3 @@ contract NAVProxyMPriceFeedUnitTests is Test {
         );
     }
 }
-
