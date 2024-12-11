@@ -29,7 +29,7 @@ contract NAVProxyMPriceFeed is AggregatorV3Interface {
      * @param  navOracle_ The address of the NAV Oracle.
      */
     constructor(address navOracle_) {
-        //validation of the oracle decimals;
+        // Validation of the NAV oracle decimals.
         if (AggregatorV3Interface(navOracle_).decimals() != 8) revert InvalidDecimalsNumber();
 
         navOracle = navOracle_;
@@ -86,7 +86,7 @@ contract NAVProxyMPriceFeed is AggregatorV3Interface {
     function _getPriceFromNAV(int256 answer) internal view returns (int256) {
         uint8 oracleDecimals = AggregatorV3Interface(navOracle).decimals();
 
-        // Scale the answer to the PRICE_FEED_DECIMALS for the comparison.
+        // Scale the answer to the PRICE_FEED_DECIMALS for the valid comparison.
         int256 scaledAnswer = (answer * int256(10 ** PRICE_FEED_DECIMALS)) / int256(10 ** oracleDecimals);
 
         return scaledAnswer >= NAV_POSITIVE_THRESHOLD ? NAV_POSITIVE_THRESHOLD : scaledAnswer;
