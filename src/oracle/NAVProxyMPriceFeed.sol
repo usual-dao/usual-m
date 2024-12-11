@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: BUSL-1.1
+// SPDX-License-Identifier: Apache-2.0
 
 pragma solidity 0.8.26;
 
@@ -21,11 +21,15 @@ contract NAVProxyMPriceFeed is AggregatorV3Interface {
     /// @notice The address of the NAV Oracle from which NAV data is fetched.
     address public immutable navOracle;
 
+    /// @notice The number of decimals used in price feed output.
+    uint8 public constant PRICE_FEED_DECIMALS = 8;
+
     /**
      * @notice Constructs the NAV Proxy M Price Feed contract.
      * @param  navOracle_ The address of the NAV Oracle.
      */
     constructor(address navOracle_) {
+        // Validation of the NAV oracle decimals.
         if (AggregatorV3Interface(navOracle_).decimals() != 8) revert InvalidDecimalsNumber();
 
         navOracle = navOracle_;
@@ -33,7 +37,7 @@ contract NAVProxyMPriceFeed is AggregatorV3Interface {
 
     /// @inheritdoc AggregatorV3Interface
     function decimals() public pure returns (uint8) {
-        return 8;
+        return PRICE_FEED_DECIMALS;
     }
 
     /// @inheritdoc AggregatorV3Interface
@@ -79,7 +83,12 @@ contract NAVProxyMPriceFeed is AggregatorV3Interface {
      * @param  answer The NAV price to convert.
      * @return        The M price.
      */
-    function _getPriceFromNAV(int256 answer) internal pure returns (int256) {
-        return answer >= NAV_POSITIVE_THRESHOLD ? NAV_POSITIVE_THRESHOLD : answer;
+    function _getPriceFromNAV(int256 answer) internal view returns (int256) {
+        uint8 oracleDecimals = AggregatorV3Interface(navOracle).decimals();
+
+        // Scale the answer to the PRICE_FEED_DECIMALS for the valid comparison.
+        int256 scaledAnswer = (answer * int256(10 ** PRICE_FEED_DECIMALS)) / int256(10 ** oracleDecimals);
+
+        return scaledAnswer >= NAV_POSITIVE_THRESHOLD ? NAV_POSITIVE_THRESHOLD : scaledAnswer;
     }
 }
