@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: BUSL-1.1
+// SPDX-License-Identifier: Apache-2.0
 
 pragma solidity 0.8.26;
 
@@ -21,7 +21,7 @@ contract NAVProxyMPriceFeed is AggregatorV3Interface {
     /// @notice The address of the NAV Oracle from which NAV data is fetched.
     address public immutable navOracle;
 
-    /// @notice The number of decimals used in price feed output
+    /// @notice The number of decimals used in price feed output.
     uint8 public constant PRICE_FEED_DECIMALS = 8;
 
     /**
@@ -85,8 +85,10 @@ contract NAVProxyMPriceFeed is AggregatorV3Interface {
      */
     function _getPriceFromNAV(int256 answer) internal view returns (int256) {
         uint8 oracleDecimals = AggregatorV3Interface(navOracle).decimals();
-        //Scale the threshold to oracle decimals for comparison
-        int256 scaledThreshold = NAV_POSITIVE_THRESHOLD * int256(10 ** oracleDecimals) / 1e8;
-        return answer >= scaledThreshold ? scaledThreshold : answer;
+
+        // Scale the answer to the PRICE_FEED_DECIMALS for the comparison.
+        int256 scaledAnswer = (answer * int256(10 ** PRICE_FEED_DECIMALS)) / int256(10 ** oracleDecimals);
+
+        return scaledAnswer >= NAV_POSITIVE_THRESHOLD ? NAV_POSITIVE_THRESHOLD : scaledAnswer;
     }
 }

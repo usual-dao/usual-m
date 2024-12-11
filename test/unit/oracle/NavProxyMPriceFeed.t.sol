@@ -74,52 +74,47 @@ contract NAVProxyMPriceFeedUnitTests is Test {
     }
 
     function testFuzz_priceConversion(int256 price) external {
-        price = bound(price, 0, 1e36); 
-        
+        price = bound(price, 0, 1e36);
+
         uint8[3] memory decimalConfigs = [6, 8, 18];
-        
+
         for (uint256 i = 0; i < decimalConfigs.length; i++) {
             uint8 oracleDecimals = decimalConfigs[i];
             MockNavOracle testOracle = new MockNavOracle();
-            
+
             // Mock decimals to 8 for constructor
             vm.mockCall(
                 address(testOracle),
                 abi.encodeWithSelector(AggregatorV3Interface.decimals.selector),
                 abi.encode(8)
             );
-            
+
             NAVProxyMPriceFeed testFeed = new NAVProxyMPriceFeed(address(testOracle));
-            
+
             // Change mocked decimals for testing
             vm.mockCall(
                 address(testOracle),
                 abi.encodeWithSelector(AggregatorV3Interface.decimals.selector),
                 abi.encode(oracleDecimals)
             );
-            
+
             testOracle.setRoundData(1, price, block.timestamp, block.timestamp, 1);
-            
+
             (, int256 answer, , , ) = testFeed.latestRoundData();
-            
-            // Convert the $1 threshold to oracle decimals for comparison
-            int256 scaledThreshold = 1e8 * int256(10 ** oracleDecimals) / 1e8;
-            
-          
+
             // Output needs to be n 8 decimals
             assertEq(testFeed.decimals(), 8);
-            
+
             // Price is capped at $1
             assertTrue(answer <= 1e8, "Price should never exceed $1 in 8 decimals");
-            
-            // If input is below $1, output should maintain the same value 
-            if (price < scaledThreshold) {
-                int256 expectedPrice = price * int256(1e8) / int256(10 ** oracleDecimals);
-                assertEq(answer, expectedPrice, "Price below $1 should maintain value after decimal conversion");
+
+            int256 scaledAnswer = (price * 1e8) / int256((10 ** oracleDecimals));
+
+            if (scaledAnswer < 1e8) {
+                assertEq(answer, scaledAnswer, "Price below $1 should maintain value after decimal conversion");
             }
-            
-            // If input is above $1, output should be exactly $1
-            if (price >= scaledThreshold) {
+
+            if (scaledAnswer >= 1e8) {
                 assertEq(answer, 1e8, "Price above $1 should be capped at $1");
             }
         }
@@ -127,22 +122,22 @@ contract NAVProxyMPriceFeedUnitTests is Test {
 
     function testFuzz_priceConversionNegativeValues(int256 price) external {
         price = bound(price, -1e36, 0);
-        
+
         MockNavOracle testOracle = new MockNavOracle();
         testOracle.setRoundData(1, price, block.timestamp, block.timestamp, 1);
-        
+
         NAVProxyMPriceFeed testFeed = new NAVProxyMPriceFeed(address(testOracle));
-        
+
         (, int256 answer, , , ) = testFeed.latestRoundData();
-        
+
         // Verify properties:
         //  Negative prices should remain negative
         assertTrue(answer <= 0, "Negative prices should remain negative");
-        
+
         // 2. No capping for negative values
         assertEq(
             answer,
-            price * int256(1e8) / int256(10 ** testOracle.decimals()),
+            (price * int256(1e8)) / int256(10 ** testOracle.decimals()),
             "Negative prices should maintain"
         );
     }
