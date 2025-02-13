@@ -2,6 +2,9 @@
 
 pragma solidity 0.8.26;
 
+import {PythStructs} from "@pythnetwork/pyth-sdk-solidity/PythStructs.sol";
+
+
 contract MockWrappedM {
     mapping(address account => uint256 balance) public balanceOf;
 
@@ -77,5 +80,31 @@ contract MockNavOracle {
 
     function latestRoundData() external view returns (uint80, int256, uint256, uint256, uint80) {
         return (_roundId, _navPrice, _startedAt, _updatedAt, _answeredInRound);
+    }
+}
+
+contract MockPyth {
+    int64 internal _navPrice;
+    uint256 internal _updatedAt;
+
+    function setRoundData(
+        int64 navPrice,
+        uint256 updatedAt
+    ) external {
+        _navPrice = navPrice;
+        _updatedAt = updatedAt;
+    }
+
+    function getUpdateFee(bytes[] calldata) external view returns (uint256) {
+        return 0;
+    }
+    
+    function getPriceUnsafe(bytes32) external view returns (PythStructs.Price memory) {
+        return PythStructs.Price({
+            price: _navPrice,
+            conf: 8,
+            expo: -10,
+            publishTime: _updatedAt
+        });
     }
 }

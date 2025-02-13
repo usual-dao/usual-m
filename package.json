@@ -47,5 +47,8 @@
   "files": [
     "src/**",
     "out/**"
-  ]
+  ],
+  "dependencies": {
+    "@pythnetwork/pyth-sdk-solidity": "^4.0.0"
+  }
 }
