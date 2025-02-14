@@ -95,7 +95,7 @@ contract MockPyth {
         _updatedAt = updatedAt;
     }
 
-    function getUpdateFee(bytes[] calldata) external view returns (uint256) {
+    function getUpdateFee(bytes[] calldata) external pure returns (uint256) {
         return 0;
     }
     
