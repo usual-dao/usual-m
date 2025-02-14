@@ -10,6 +10,7 @@ import { PythAggregatorV3 } from "@pythnetwork/pyth-sdk-solidity/PythAggregatorV
  *         converts it to a M price based on a specified threshold, and is compatible with
  *         the Chainlink AggregatorV3Interface.
  * @author M^0 Labs
+ * @author modified by Usual Labs
  */
 contract NAVProxyMPriceFeed is PythAggregatorV3 {
     constructor(address pyth_, bytes32 priceId_) PythAggregatorV3(pyth_, priceId_) {}

@@ -9,6 +9,7 @@ import {
 /**
  * @title  Usual WrappedM Extension.
  * @author M^0 Labs
+ * @author modified by Usual Labs
  */
 interface IUsualM is IERC20Metadata {
     /* ============ Events ============ */
@@ -80,7 +81,7 @@ interface IUsualM is IERC20Metadata {
 
     /**
      * @notice Unwraps `amount` UsualM from the caller into WrappedM for `recipient`.
-     * @dev Can only be called by the `USUAL_M_UNWRAP`.
+     * @dev Can only be called by the `USUAL_USDTB_UNWRAP`.
      * @param  recipient The account receiving the withdrawn WrappedM.
      * @param  amount    The amount of UsualM burned.
      * @return           The amount of WrappedM withdrawn.
@@ -102,18 +103,18 @@ interface IUsualM is IERC20Metadata {
     function unBlacklist(address account) external;
 
     /// @notice Pauses all token transfers.
-    /// @dev Can only be called by the `USUAL_M_PAUSE` role.
+    /// @dev Can only be called by the `USUAL_USDTB_PAUSE` role.
     function pause() external;
 
     /// @notice Unpauses all token transfers.
-    /// @dev Can only be called by the `USUAL_M_UNPAUSE` role.
+    /// @dev Can only be called by the `USUAL_USDTB_UNPAUSE` role.
     function unpause() external;
 
     /**
      * @notice Sets the mint cap.
      * @param newMintCap The new mint cap, should be different from the current value.
      * @dev The new mint cap should be less than or equal to 2^96 - 1.
-     * @dev Can only be called by the `USUAL_M_MINTCAP_ALLOCATOR` role.
+     * @dev Can only be called by the `USUAL_USDTB_MINTCAP_ALLOCATOR` role.
      * @dev number of deciamls is 6 for the mint cap value.
      **/
     function setMintCap(uint256 newMintCap) external;

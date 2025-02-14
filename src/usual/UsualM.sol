@@ -19,43 +19,46 @@ import { IUsualM } from "./interfaces/IUsualM.sol";
 import { IRegistryAccess } from "./interfaces/IRegistryAccess.sol";
 
 import {
-    USUAL_M_UNWRAP,
-    USUAL_M_PAUSE,
-    USUAL_M_UNPAUSE,
+    USUAL_USDTB_UNWRAP,
+    USUAL_USDTB_PAUSE,
+    USUAL_USDTB_UNPAUSE,
     BLACKLIST_ROLE,
-    USUAL_M_MINTCAP_ALLOCATOR
+    USUAL_USDTB_MINTCAP_ALLOCATOR
 } from "./constants.sol";
 
 /**
- * @title  Usual Wrapped M Extension.
+ * @title  Usual Wrapped USDTB Extension.
  * @author M^0 Labs
+ * @author modified by Usual Labs
  */
 contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
     /* ============ Structs, Variables, Modifiers ============ */
 
-    /// @custom:storage-location erc7201:UsualM.storage.v0
-    struct UsualMStorageV0 {
+    /// @custom:storage-location erc7201:UsualUSDTB.storage.v0
+    struct UsualUSDTBStorageV0 {
         // 1st slot
         uint96 mintCap;
-        address wrappedM;
+        address Usdtb;
         // 2nd slot
         address registryAccess;
         // next slots
         mapping(address => bool) isBlacklisted;
     }
 
-    // keccak256(abi.encode(uint256(keccak256("UsualM.storage.v0")) - 1)) & ~bytes32(uint256(0xff))
+
+  
+    // keccak256(abi.encode(uint256(keccak256("UsualUSDTB.storage.v0")) - 1)) & ~bytes32(uint256(0xff))
     // solhint-disable-next-line
-    bytes32 public constant UsualMStorageV0Location =
-        0xaf0b0773f61ce9af1982ff9a13506e1d8ad90f04391405f722e2ad38e8ffd300;
+    bytes32 public constant UsualUSDTBStorageV0Location =
+        0x19a951195a7ec99af1caf540a6cbc8dcb3f02edec795ffcbb0a058cd03496300;
 
     /// @notice The number of decimals for the UsualM token.
     uint8 public constant DECIMALS_NUMBER = 6;
 
     /// @notice Returns the storage struct of the contract.
     /// @return $ .
-    function _usualMStorageV0() internal pure returns (UsualMStorageV0 storage $) {
-        bytes32 position = UsualMStorageV0Location;
+    function _UsualUSDTBStorageV0() internal pure returns (UsualUSDTBStorageV0 storage $) {
+        bytes32 position = UsualUSDTBStorageV0Location;
         // solhint-disable-next-line no-inline-assembly
         assembly {
             $.slot := position
@@ -79,8 +82,8 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
         __ERC20Pausable_init();
         __ERC20Permit_init("UsualM");
 
-        UsualMStorageV0 storage $ = _usualMStorageV0();
-        $.wrappedM = wrappedM_;
+        UsualUSDTBStorageV0 storage $ = _UsualUSDTBStorageV0();
+        $.USDTB = wrappedM_;
         $.registryAccess = registryAccess_;
     }
 
@@ -114,10 +117,10 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
     function unwrap(address recipient, uint256 amount) external returns (uint256) {
         if (amount == 0) revert InvalidAmount();
 
-        UsualMStorageV0 storage $ = _usualMStorageV0();
+        UsualUSDTBStorageV0 storage $ = _UsualUSDTBStorageV0();
 
         // Check that caller has a valid access role before proceeding.
-        if (!IRegistryAccess($.registryAccess).hasRole(USUAL_M_UNWRAP, msg.sender)) revert NotAuthorized();
+        if (!IRegistryAccess($.registryAccess).hasRole(USUAL_USDTB_UNWRAP, msg.sender)) revert NotAuthorized();
 
         return _unwrap(msg.sender, recipient, amount);
     }
@@ -126,10 +129,10 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
 
     /// @inheritdoc IUsualM
     function setMintCap(uint256 newMintCap) external {
-        UsualMStorageV0 storage $ = _usualMStorageV0();
+        UsualUSDTBStorageV0 storage $ = _UsualUSDTBStorageV0();
 
         // Check that caller has a valid access role before proceeding.
-        if (!IRegistryAccess($.registryAccess).hasRole(USUAL_M_MINTCAP_ALLOCATOR, msg.sender)) revert NotAuthorized();
+        if (!IRegistryAccess($.registryAccess).hasRole(USUAL_USDTB_MINTCAP_ALLOCATOR, msg.sender)) revert NotAuthorized();
 
         // Revert if the new mint cap is the same as the current mint cap.
         if (newMintCap == $.mintCap) revert SameValue();
@@ -141,20 +144,20 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
 
     /// @inheritdoc IUsualM
     function pause() external {
-        UsualMStorageV0 storage $ = _usualMStorageV0();
+        UsualUSDTBStorageV0 storage $ = _UsualUSDTBStorageV0();
 
         // Check that caller has a valid access role before proceeding.
-        if (!IRegistryAccess($.registryAccess).hasRole(USUAL_M_PAUSE, msg.sender)) revert NotAuthorized();
+        if (!IRegistryAccess($.registryAccess).hasRole(USUAL_USDTB_PAUSE, msg.sender)) revert NotAuthorized();
 
         _pause();
     }
 
     /// @inheritdoc IUsualM
     function unpause() external {
-        UsualMStorageV0 storage $ = _usualMStorageV0();
+        UsualUSDTBStorageV0 storage $ = _UsualUSDTBStorageV0();
 
         // Check that caller has a valid access role before proceeding.
-        if (!IRegistryAccess($.registryAccess).hasRole(USUAL_M_UNPAUSE, msg.sender)) revert NotAuthorized();
+        if (!IRegistryAccess($.registryAccess).hasRole(USUAL_USDTB_UNPAUSE, msg.sender)) revert NotAuthorized();
 
         _unpause();
     }
@@ -164,7 +167,7 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
     function blacklist(address account) external {
         if (account == address(0)) revert ZeroAddress();
 
-        UsualMStorageV0 storage $ = _usualMStorageV0();
+        UsualUSDTBStorageV0 storage $ = _UsualUSDTBStorageV0();
 
         // Check that caller has a valid access role before proceeding.
         if (!IRegistryAccess($.registryAccess).hasRole(BLACKLIST_ROLE, msg.sender)) revert NotAuthorized();
@@ -182,7 +185,7 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
     function unBlacklist(address account) external {
         if (account == address(0)) revert ZeroAddress();
 
-        UsualMStorageV0 storage $ = _usualMStorageV0();
+        UsualUSDTBStorageV0 storage $ = _UsualUSDTBStorageV0();
 
         // Check that caller has a valid access role before proceeding.
         if (!IRegistryAccess($.registryAccess).hasRole(BLACKLIST_ROLE, msg.sender)) revert NotAuthorized();
@@ -204,25 +207,25 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
 
     /// @inheritdoc IUsualM
     function wrappedM() public view returns (address) {
-        UsualMStorageV0 storage $ = _usualMStorageV0();
-        return $.wrappedM;
+        UsualUSDTBStorageV0 storage $ = _UsualUSDTBStorageV0();
+        return $.USDTB;
     }
 
     /// @inheritdoc IUsualM
     function registryAccess() public view returns (address) {
-        UsualMStorageV0 storage $ = _usualMStorageV0();
+        UsualUSDTBStorageV0 storage $ = _UsualUSDTBStorageV0();
         return $.registryAccess;
     }
 
     /// @inheritdoc IUsualM
     function mintCap() public view returns (uint256) {
-        UsualMStorageV0 storage $ = _usualMStorageV0();
+        UsualUSDTBStorageV0 storage $ = _UsualUSDTBStorageV0();
         return $.mintCap;
     }
 
     /// @inheritdoc IUsualM
     function isBlacklisted(address account) external view returns (bool) {
-        UsualMStorageV0 storage $ = _usualMStorageV0();
+        UsualUSDTBStorageV0 storage $ = _UsualUSDTBStorageV0();
         return $.isBlacklisted[account];
     }
 
@@ -244,10 +247,10 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
      * @return wrapped    The amount of UsualM minted.
      */
     function _wrap(address account, address recipient, uint256 amount) internal returns (uint256 wrapped) {
-        UsualMStorageV0 storage $ = _usualMStorageV0();
+        UsualUSDTBStorageV0 storage $ = _UsualUSDTBStorageV0();
 
         // NOTE: The behavior of `IWrappedMLike.transferFrom` is known, so its return can be ignored.
-        IWrappedMLike($.wrappedM).transferFrom(account, address(this), amount);
+        IWrappedMLike($.USDTB).transferFrom(account, address(this), amount);
 
         _mint(recipient, wrapped = amount);
     }
@@ -277,7 +280,7 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
         address to,
         uint256 amount
     ) internal virtual override(ERC20PausableUpgradeable, ERC20Upgradeable) {
-        UsualMStorageV0 storage $ = _usualMStorageV0();
+        UsualUSDTBStorageV0 storage $ = _UsualUSDTBStorageV0();
         if ($.isBlacklisted[from] || $.isBlacklisted[to]) revert Blacklisted();
 
         // Check if minting would exceed the mint cap

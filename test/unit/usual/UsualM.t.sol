@@ -9,11 +9,11 @@ import { MockWrappedM, MockRegistryAccess } from "../../utils/Mocks.sol";
 
 import {
     DEFAULT_ADMIN_ROLE,
-    USUAL_M_UNWRAP,
-    USUAL_M_PAUSE,
-    USUAL_M_UNPAUSE,
+    USUAL_USDTB_UNWRAP,
+    USUAL_USDTB_PAUSE,
+    USUAL_USDTB_UNPAUSE,
     BLACKLIST_ROLE,
-    USUAL_M_MINTCAP_ALLOCATOR
+    USUAL_USDTB_MINTCAP_ALLOCATOR
 } from "../../../src/usual/constants.sol";
 import { UsualM } from "../../../src/usual/UsualM.sol";
 
@@ -59,9 +59,9 @@ contract UsualMUnitTests is Test {
 
         // Set pauser/unpauser role.
         vm.prank(_admin);
-        _registryAccess.grantRole(USUAL_M_PAUSE, _pauser);
+        _registryAccess.grantRole(USUAL_USDTB_PAUSE, _pauser);
         vm.prank(_admin);
-        _registryAccess.grantRole(USUAL_M_UNPAUSE, _unpauser);
+        _registryAccess.grantRole(USUAL_USDTB_UNPAUSE, _unpauser);
 
         // Grant BLACKLIST_ROLE to the blacklister instead of admin
         vm.prank(_admin);
@@ -72,12 +72,12 @@ contract UsualMUnitTests is Test {
             _wrappedM.setBalanceOf(_accounts[i], 10e6);
 
             vm.prank(_admin);
-            _registryAccess.grantRole(USUAL_M_UNWRAP, _accounts[i]);
+            _registryAccess.grantRole(USUAL_USDTB_UNWRAP, _accounts[i]);
         }
 
         // Add mint cap allocator role to a separate address
         vm.prank(_admin);
-        _registryAccess.grantRole(USUAL_M_MINTCAP_ALLOCATOR, _mintCapAllocator);
+        _registryAccess.grantRole(USUAL_USDTB_MINTCAP_ALLOCATOR, _mintCapAllocator);
 
         // Set an initial mint cap
         vm.prank(_mintCapAllocator);
