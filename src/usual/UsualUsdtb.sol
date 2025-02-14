@@ -14,10 +14,9 @@ import {
 
 import { IERC20Metadata } from "../../lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import { IWrappedMLike } from "./interfaces/IWrappedMLike.sol";
-import { IUsualM } from "./interfaces/IUsualM.sol";
+import { IUsualUSDTB } from "./interfaces/IUsualUSDTB.sol";
 import { IRegistryAccess } from "./interfaces/IRegistryAccess.sol";
-
+import { IUSDTB } from "./interfaces/IUsdtb.sol";
 import {
     USUAL_USDTB_UNWRAP,
     USUAL_USDTB_PAUSE,
@@ -31,7 +30,7 @@ import {
  * @author M^0 Labs
  * @author modified by Usual Labs
  */
-contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
+contract UsualUSDTB is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualUSDTB {
     /* ============ Structs, Variables, Modifiers ============ */
 
     /// @custom:storage-location erc7201:UsualUSDTB.storage.v0
@@ -52,8 +51,8 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
     bytes32 public constant UsualUSDTBStorageV0Location =
         0x19a951195a7ec99af1caf540a6cbc8dcb3f02edec795ffcbb0a058cd03496300;
 
-    /// @notice The number of decimals for the UsualM token.
-    uint8 public constant DECIMALS_NUMBER = 6;
+    /// @notice The number of decimals for the UsualUSDTB token.
+    uint8 public constant DECIMALS_NUMBER = 18;
 
     /// @notice Returns the storage struct of the contract.
     /// @return $ .
@@ -74,29 +73,29 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
 
     /* ============ Initializer ============ */
 
-    function initialize(address wrappedM_, address registryAccess_) public initializer {
-        if (wrappedM_ == address(0)) revert ZeroWrappedM();
+    function initialize(address usdtb_, address registryAccess_) public initializer {
+        if (usdtb_ == address(0)) revert ZeroUsdtb();
         if (registryAccess_ == address(0)) revert ZeroRegistryAccess();
 
-        __ERC20_init("UsualM", "USUALM");
+        __ERC20_init("UsualUSDTB", "USUALUSDTB");
         __ERC20Pausable_init();
-        __ERC20Permit_init("UsualM");
+        __ERC20Permit_init("UsualUSDTB");
 
         UsualUSDTBStorageV0 storage $ = _UsualUSDTBStorageV0();
-        $.USDTB = wrappedM_;
+        $.Usdtb = usdtb_;
         $.registryAccess = registryAccess_;
     }
 
     /* ============ Interactive Functions ============ */
 
-    /// @inheritdoc IUsualM
+    /// @inheritdoc IUsualUSDTB
     function wrap(address recipient, uint256 amount) external returns (uint256) {
         if (amount == 0) revert InvalidAmount();
 
         return _wrap(msg.sender, recipient, amount);
     }
 
-    /// @inheritdoc IUsualM
+    /// @inheritdoc IUsualUSDTB
     function wrapWithPermit(
         address recipient,
         uint256 amount,
@@ -107,13 +106,15 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
     ) external returns (uint256) {
         if (amount == 0) revert InvalidAmount();
 
+        UsualUSDTBStorageV0 storage $ = _UsualUSDTBStorageV0();
+
         // NOTE: `permit` call failures can be safely ignored to remove the risk of transactions being reverted due to front-run.
-        try IWrappedMLike(wrappedM()).permit(msg.sender, address(this), amount, deadline, v, r, s) {} catch {}
+        try IUSDTB($.Usdtb).permit(msg.sender, address(this), amount, deadline, v, r, s) {} catch {}
 
         return _wrap(msg.sender, recipient, amount);
     }
 
-    /// @inheritdoc IUsualM
+    /// @inheritdoc IUsualUSDTB
     function unwrap(address recipient, uint256 amount) external returns (uint256) {
         if (amount == 0) revert InvalidAmount();
 
@@ -127,7 +128,7 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
 
     /* ============ Special Admin Functions ============ */
 
-    /// @inheritdoc IUsualM
+    /// @inheritdoc IUsualUSDTB
     function setMintCap(uint256 newMintCap) external {
         UsualUSDTBStorageV0 storage $ = _UsualUSDTBStorageV0();
 
@@ -142,7 +143,7 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
         emit MintCapSet(newMintCap);
     }
 
-    /// @inheritdoc IUsualM
+    /// @inheritdoc IUsualUSDTB
     function pause() external {
         UsualUSDTBStorageV0 storage $ = _UsualUSDTBStorageV0();
 
@@ -152,7 +153,7 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
         _pause();
     }
 
-    /// @inheritdoc IUsualM
+    /// @inheritdoc IUsualUSDTB
     function unpause() external {
         UsualUSDTBStorageV0 storage $ = _UsualUSDTBStorageV0();
 
@@ -162,7 +163,7 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
         _unpause();
     }
 
-    /// @inheritdoc IUsualM
+    /// @inheritdoc IUsualUSDTB
     /// @dev Can only be called by an account with the `BLACKLIST_ROLE` role.
     function blacklist(address account) external {
         if (account == address(0)) revert ZeroAddress();
@@ -180,7 +181,7 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
         emit Blacklist(account);
     }
 
-    /// @inheritdoc IUsualM
+    /// @inheritdoc IUsualUSDTB
     /// @dev Can only be called by an account with the `BLACKLIST_ROLE` role.
     function unBlacklist(address account) external {
         if (account == address(0)) revert ZeroAddress();
@@ -205,31 +206,31 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
         return DECIMALS_NUMBER;
     }
 
-    /// @inheritdoc IUsualM
-    function wrappedM() public view returns (address) {
+    /// @inheritdoc IUsualUSDTB
+    function usdtb() public view returns (address) {
         UsualUSDTBStorageV0 storage $ = _UsualUSDTBStorageV0();
-        return $.USDTB;
+        return $.Usdtb;
     }
 
-    /// @inheritdoc IUsualM
+    /// @inheritdoc IUsualUSDTB
     function registryAccess() public view returns (address) {
         UsualUSDTBStorageV0 storage $ = _UsualUSDTBStorageV0();
         return $.registryAccess;
     }
 
-    /// @inheritdoc IUsualM
+    /// @inheritdoc IUsualUSDTB
     function mintCap() public view returns (uint256) {
         UsualUSDTBStorageV0 storage $ = _UsualUSDTBStorageV0();
         return $.mintCap;
     }
 
-    /// @inheritdoc IUsualM
+    /// @inheritdoc IUsualUSDTB
     function isBlacklisted(address account) external view returns (bool) {
         UsualUSDTBStorageV0 storage $ = _UsualUSDTBStorageV0();
         return $.isBlacklisted[account];
     }
 
-    /// @inheritdoc IUsualM
+    /// @inheritdoc IUsualUSDTB
     function getWrappableAmount(uint256 amount) external view returns (uint256) {
         uint256 totalSupply_ = totalSupply();
         uint256 mintCap_ = mintCap();
@@ -240,33 +241,35 @@ contract UsualM is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualM {
     /* ============ Internal Interactive Functions ============ */
 
     /**
-     * @dev    Wraps `amount` WrappedM from `account` into UsualM for `recipient`.
-     * @param  account    The account from which WrappedM is deposited.
-     * @param  recipient  The account receiving the minted UsualM.
-     * @param  amount     The amount of WrappedM deposited.
-     * @return wrapped    The amount of UsualM minted.
+     * @dev    Wraps `amount` Usdtb from `account` into UsualUSDTB for `recipient`.
+     * @param  account    The account from which Usdtb is deposited.
+     * @param  recipient  The account receiving the minted UsualUSDTB.
+     * @param  amount     The amount of Usdtb deposited.
+     * @return wrapped    The amount of UsualUSDTB minted.
      */
     function _wrap(address account, address recipient, uint256 amount) internal returns (uint256 wrapped) {
         UsualUSDTBStorageV0 storage $ = _UsualUSDTBStorageV0();
 
-        // NOTE: The behavior of `IWrappedMLike.transferFrom` is known, so its return can be ignored.
-        IWrappedMLike($.USDTB).transferFrom(account, address(this), amount);
+        // NOTE: The behavior of `IUsualUSDTB.transferFrom` is known, so its return can be ignored.
+        IUSDTB($.Usdtb).transferFrom(account, address(this), amount);
 
         _mint(recipient, wrapped = amount);
     }
 
     /**
-     * @dev    Unwraps `amount` UsualM from `account` into WrappedM for `recipient`.
-     * @param  account   The account from which UsualM is burned.
-     * @param  recipient The account receiving the withdrawn WrappedM.
-     * @param  amount    The amount of UsualM burned.
-     * @return unwrapped The amount of WrappedM tokens withdrawn.
+     * @dev    Unwraps `amount` UsualUSDTB from `account` into Usdtb for `recipient`.
+     * @param  account   The account from which UsualUSDTB is burned.
+     * @param  recipient The account receiving the withdrawn Usdtb.
+     * @param  amount    The amount of UsualUSDTB burned.
+     * @return unwrapped The amount of Usdtb tokens withdrawn.
      */
     function _unwrap(address account, address recipient, uint256 amount) internal returns (uint256 unwrapped) {
+        UsualUSDTBStorageV0 storage $ = _UsualUSDTBStorageV0();
+
         _burn(account, amount);
 
-        // NOTE: The behavior of `IWrappedMLike.transfer` is known, so its return can be ignored.
-        IWrappedMLike(wrappedM()).transfer(recipient, unwrapped = amount);
+        // NOTE: The behavior of `IUsualUSDTB.transfer` is known, so its return can be ignored.
+        IUSDTB($.Usdtb).transfer(recipient, unwrapped = amount);
     }
 
     /**

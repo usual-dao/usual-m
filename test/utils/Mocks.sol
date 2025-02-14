@@ -5,7 +5,7 @@ pragma solidity 0.8.26;
 import {PythStructs} from "@pythnetwork/pyth-sdk-solidity/PythStructs.sol";
 
 
-contract MockWrappedM {
+contract MockUSDTB {
     mapping(address account => uint256 balance) public balanceOf;
 
     function permit(

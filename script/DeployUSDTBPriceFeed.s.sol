@@ -4,12 +4,11 @@ pragma solidity 0.8.26;
 
 import { Script, console2 } from "../lib/forge-std/src/Script.sol";
 
-import { NAVProxyMPriceFeed } from "../src/oracle/NAVProxyMPriceFeed.sol";
+import { NAVProxyUSDTBPriceFeed } from "../src/oracle/NAVProxyUSDTBPriceFeed.sol";
 
 import { IPyth } from "@pythnetwork/pyth-sdk-solidity/IPyth.sol";
 
-contract DeployMPriceFeedScript is Script {
-    address internal constant _CHAINLINK_NAV_ORACLE = 0xC28198Df9aee1c4990994B35ff51eFA4C769e534; // Mainnet M^0 Chainlink NAV oracle
+contract DeployUSDTBPriceFeedScript is Script {
     IPyth public pyth;
     bytes32 public usdtbPriceId;
 
@@ -23,7 +22,7 @@ contract DeployMPriceFeedScript is Script {
 
         vm.startBroadcast(deployer_);
 
-        address priceFeed = address(new NAVProxyMPriceFeed(address(pyth), usdtbPriceId));
+        address priceFeed = address(new NAVProxyUSDTBPriceFeed(address(pyth), usdtbPriceId));
 
         vm.stopBroadcast();
 

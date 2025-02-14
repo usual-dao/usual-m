@@ -4,14 +4,14 @@ pragma solidity 0.8.26;
 
 import { Script, console2 } from "../lib/forge-std/src/Script.sol";
 
-import { UsualM } from "../src/usual/UsualM.sol";
+import { UsualUSDTB } from "../src/usual/UsualUSDTB.sol";
 
 import {
     TransparentUpgradeableProxy
 } from "../lib/openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
-contract DeployUsualMScript is Script {
-    address internal constant _WRAPPED_M_TOKEN = 0x437cc33344a0B27A429f795ff6B469C72698B291; // Mainnet Wrapped M
+contract DeployUsualUSDTBScript is Script {
+    address internal constant _USDTB_TOKEN = 0xC139190F447e929f090Edeb554D95AbB8b18aC1C; // Mainnet USDTB
 
     address internal constant _USUAL_REGISTRY_ACCESS = 0x0D374775E962c3608B8F0A4b8B10567DF739bb56; // Usual registry access
 
@@ -24,17 +24,17 @@ contract DeployUsualMScript is Script {
 
         vm.startBroadcast(deployer_);
 
-        address usualMImplementation = address(new UsualM());
-        bytes memory usualMData = abi.encodeWithSignature(
+        address usualUSDTBImplementation = address(new UsualUSDTB());
+        bytes memory usualUSDTBData = abi.encodeWithSignature(
             "initialize(address,address)",
-            _WRAPPED_M_TOKEN,
+            _USDTB_TOKEN,
             _USUAL_REGISTRY_ACCESS
         );
-        address usualM = address(new TransparentUpgradeableProxy(usualMImplementation, _USUAL_ADMIN, usualMData));
+        address usualUSDTB = address(new TransparentUpgradeableProxy(usualUSDTBImplementation, _USUAL_ADMIN, usualUSDTBData));
 
         vm.stopBroadcast();
 
-        console2.log("UsualM implementation:", usualMImplementation);
-        console2.log("UsualM:", usualM);
+        console2.log("UsualUSDTB implementation:", usualUSDTBImplementation);
+        console2.log("UsualUSDTB:", usualUSDTB);
     }
 }
