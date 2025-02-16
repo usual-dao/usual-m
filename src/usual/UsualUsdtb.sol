@@ -73,6 +73,9 @@ contract UsualUSDTB is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualU
 
     /* ============ Initializer ============ */
 
+    /// @notice Initializes the UsualUSDTB contract.
+    /// @param usdtb_ The address of the USDTB token.
+    /// @param registryAccess_ The address of the registry access.
     function initialize(address usdtb_, address registryAccess_) public initializer {
         if (usdtb_ == address(0)) revert ZeroUsdtb();
         if (registryAccess_ == address(0)) revert ZeroRegistryAccess();
@@ -164,7 +167,6 @@ contract UsualUSDTB is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualU
     }
 
     /// @inheritdoc IUsualUSDTB
-    /// @dev Can only be called by an account with the `BLACKLIST_ROLE` role.
     function blacklist(address account) external {
         if (account == address(0)) revert ZeroAddress();
 
@@ -182,7 +184,6 @@ contract UsualUSDTB is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualU
     }
 
     /// @inheritdoc IUsualUSDTB
-    /// @dev Can only be called by an account with the `BLACKLIST_ROLE` role.
     function unBlacklist(address account) external {
         if (account == address(0)) revert ZeroAddress();
 
