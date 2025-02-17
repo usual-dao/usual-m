@@ -294,11 +294,16 @@ contract UsualUSDTB is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualU
     }
 
     /// @dev Compares two uint256 values and returns the lesser one.
+    /// @param a The first value to compare.
+    /// @param b The second value to compare.
+    /// @return The lesser of the two values.
     function _min(uint256 a, uint256 b) internal pure returns (uint256) {
         return a < b ? a : b;
     }
 
     /// @dev Converts a uint256 to a uint96, reverting if the conversion without loss is not possible.
+    /// @param n The value to convert.
+    /// @return The converted value.
     function _safe96(uint256 n) internal pure returns (uint96) {
         if (n > type(uint96).max) revert InvalidUInt96();
         return uint96(n);
