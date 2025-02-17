@@ -14,7 +14,7 @@ import {
     USUAL_USDTB_UNPAUSE,
     BLACKLIST_ROLE,
     USUAL_USDTB_MINTCAP_ALLOCATOR
-} from "../../../src/usual/constants.sol";
+} from "../../../src/constants.sol";
 import { UsualUSDTB } from "../../../src/usual/UsualUSDTB.sol";
 
 import { IUsualUSDTB } from "../../../src/usual/interfaces/IUsualUSDTB.sol";

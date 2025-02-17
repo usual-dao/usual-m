@@ -22,8 +22,9 @@ import {
     USUAL_USDTB_PAUSE,
     USUAL_USDTB_UNPAUSE,
     BLACKLIST_ROLE,
-    USUAL_USDTB_MINTCAP_ALLOCATOR
-} from "./constants.sol";
+    USUAL_USDTB_MINTCAP_ALLOCATOR,
+    USUAL_USDTB_DECIMALS
+} from "../constants.sol";
 
 /**
  * @title  Usual Wrapped USDTB Extension.
@@ -50,9 +51,6 @@ contract UsualUSDTB is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualU
     // solhint-disable-next-line
     bytes32 public constant UsualUSDTBStorageV0Location =
         0x19a951195a7ec99af1caf540a6cbc8dcb3f02edec795ffcbb0a058cd03496300;
-
-    /// @notice The number of decimals for the UsualUSDTB token.
-    uint8 public constant DECIMALS_NUMBER = 18;
 
     /// @notice Returns the storage struct of the contract.
     /// @return $ .
@@ -204,7 +202,7 @@ contract UsualUSDTB is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualU
 
     /// @inheritdoc IERC20Metadata
     function decimals() public pure override(ERC20Upgradeable, IERC20Metadata) returns (uint8) {
-        return DECIMALS_NUMBER;
+        return USUAL_USDTB_DECIMALS;
     }
 
     /// @inheritdoc IUsualUSDTB

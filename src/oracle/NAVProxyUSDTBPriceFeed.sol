@@ -5,6 +5,7 @@ pragma solidity 0.8.26;
 import { IPyth } from "@pythnetwork/pyth-sdk-solidity/IPyth.sol";
 import { PythStructs } from "@pythnetwork/pyth-sdk-solidity/PythStructs.sol";
 
+import { NAV_POSITIVE_THRESHOLD, NAV_PRICE_DECIMALS } from "../constants.sol";
 /**
  * @title  NAV Proxy USDTB Chainlink Compatible Price Feed
  * @notice A proxy contract that retrieves NAV (Net Asset Value) data from an external oracle,
@@ -16,17 +17,12 @@ import { PythStructs } from "@pythnetwork/pyth-sdk-solidity/PythStructs.sol";
  */
 contract NAVProxyUSDTBPriceFeed {
 
-    /// @notice NAV price threshold that defines 1$ USDTB price.
-    int256 public constant NAV_POSITIVE_THRESHOLD = 1e8;
-
     /// @notice The Pyth price ID for the USDTB NAV.
     bytes32 public priceId;
 
     /// @notice The Pyth price feed.
     IPyth public pyth;
 
-    /// @notice The number of decimals used in price feed output.
-    uint8 public constant PRICE_FEED_DECIMALS = 8;
 
     /// @notice Constructor
     /// @param _pyth The address of the Pyth price feed.
@@ -52,7 +48,7 @@ contract NAVProxyUSDTBPriceFeed {
     /// @notice Returns the number of decimals used in price feed output.
     /// @return The number of decimals.
     function decimals() public view virtual returns (uint8) {
-        return PRICE_FEED_DECIMALS;
+        return NAV_PRICE_DECIMALS;
     }
 
     /// @notice Returns the description of the price feed.
@@ -65,6 +61,12 @@ contract NAVProxyUSDTBPriceFeed {
     /// @return The version.
     function version() public pure returns (uint256) {
         return 1;
+    }
+
+    /// @notice Returns the threshold for the price feed.
+    /// @return The threshold.
+    function getThreshold() public pure returns (int256) {
+        return NAV_POSITIVE_THRESHOLD;
     }
 
     /// @notice Returns the round data for a given round ID.
@@ -133,7 +135,7 @@ contract NAVProxyUSDTBPriceFeed {
         uint8 oracleDecimals = uint8(-1 * int8(price.expo));
 
         // Scale the answer to the PRICE_FEED_DECIMALS for the valid comparison.
-        int256 scaledAnswer = (answer * int256(10 ** PRICE_FEED_DECIMALS)) / int256(10 ** oracleDecimals);
+        int256 scaledAnswer = (answer * int256(10 ** NAV_PRICE_DECIMALS)) / int256(10 ** oracleDecimals);
 
         return scaledAnswer >= NAV_POSITIVE_THRESHOLD ? NAV_POSITIVE_THRESHOLD : scaledAnswer;
     }

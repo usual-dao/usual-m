@@ -12,7 +12,7 @@ import { IRegistryAccess } from "../../../src/usual/interfaces/IRegistryAccess.s
 import { IUSDTB } from "../../../src/usual/interfaces/IUsdtb.sol";
 import { UsualUSDTB } from "../../../src/usual/UsualUSDTB.sol";
 
-import { USUAL_USDTB_UNWRAP, USUAL_USDTB_PAUSE, USUAL_USDTB_UNPAUSE, USUAL_USDTB_MINTCAP_ALLOCATOR } from "../../../src/usual/constants.sol";
+import { USUAL_USDTB_UNWRAP, USUAL_USDTB_PAUSE, USUAL_USDTB_UNPAUSE, USUAL_USDTB_MINTCAP_ALLOCATOR } from "../../../src/constants.sol";
 
 contract TestBase is Test {
     IUSDTB internal constant _usdtb = IUSDTB(0xC139190F447e929f090Edeb554D95AbB8b18aC1C);

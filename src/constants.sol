@@ -19,3 +19,12 @@ bytes32 constant BLACKLIST_ROLE = keccak256("BLACKLIST_ROLE");
 
 // The mint cap allocator role. Required to set the mint cap.
 bytes32 constant USUAL_USDTB_MINTCAP_ALLOCATOR = keccak256("USUAL_USDTB_MINTCAP_ALLOCATOR");
+
+// The number of decimals for the UsualUSDTB token.
+uint8 constant USUAL_USDTB_DECIMALS = 18;
+
+// The number of decimals of the NAV price.
+uint8 constant NAV_PRICE_DECIMALS = 8;
+
+// NAV price threshold that defines 1$ USDTB price.
+int256 constant NAV_POSITIVE_THRESHOLD = 1e8;
