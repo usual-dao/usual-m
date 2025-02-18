@@ -6,5 +6,5 @@ See official [Usual documentation](https://tech.usual.money/smart-contracts/real
 
 ## Deployments
 
-1. UsualUSDTB: [TODO](https://etherscan.io/address/TODO)
-2. USDTB Price Oracle: [TODO](https://etherscan.io/address/TODO)
+1. UsualUSDTB: [0x58073531a2809744d1bf311d30fd76b27d662abb](https://etherscan.io/address/0x58073531a2809744d1bf311d30fd76b27d662abb)
+2. USDTB Price Oracle: [0xd96f2ad5f40fce3fffa7a06e7d7ac5bacfd8e987](https://etherscan.io/address/0xd96f2ad5f40fce3fffa7a06e7d7ac5bacfd8e987)
