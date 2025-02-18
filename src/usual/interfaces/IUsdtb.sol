@@ -3,10 +3,10 @@
 pragma solidity 0.8.26;
 
 /**
- * @title  Subset of Wrapped M Token interface required for source contracts.
- * @author M^0 Labs
+ * @title  Usdtb Interface.
+ * @author Usual Labs
  */
-interface IWrappedMLike {
+interface IUSDTB {
     /* ============ Interactive Functions ============ */
 
     /**
@@ -54,42 +54,6 @@ interface IWrappedMLike {
      * @return success   Whether or not the transfer was successful.
      */
     function transferFrom(address sender, address recipient, uint256 amount) external returns (bool success);
-
-    /**
-     * @notice Starts earning for `account` if allowed by the Registrar.
-     * @param  account The account to start earning for.
-     */
-    function startEarningFor(address account) external;
-
-    /**
-     * @notice Claims any claimable yield for `account`.
-     * @param  account The account under which yield was generated.
-     * @return yield   The amount of yield claimed.
-     */
-    function claimFor(address account) external returns (uint240 yield);
-
-    /* ============ View/Pure Functions ============ */
-
-    /**
-     * @notice Returns the yield accrued for `account`, which is claimable.
-     * @param  account The account being queried.
-     * @return yield   The amount of yield that is claimable.
-     */
-    function accruedYieldOf(address account) external view returns (uint240 yield);
-
-    /**
-     * @notice Returns the recipient to override as the destination for an account's claim of yield.
-     * @param  account   The account being queried.
-     * @return recipient The address of the recipient, if any, to override as the destination of claimed yield.
-     */
-    function claimOverrideRecipientFor(address account) external view returns (address recipient);
-
-    /**
-     * @notice Checks if account is an earner.
-     * @param  account The account to check.
-     * @return earning True if account is an earner, false otherwise.
-     */
-    function isEarning(address account) external view returns (bool earning);
 
     /**
      * @notice Returns the token balance of `account`.
