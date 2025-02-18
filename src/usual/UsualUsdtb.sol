@@ -28,8 +28,7 @@ import {
 
 /**
  * @title  Usual Wrapped USDTB Extension.
- * @author M^0 Labs
- * @author modified by Usual Labs
+ * @author Usual Labs
  */
 contract UsualUSDTB is ERC20PausableUpgradeable, ERC20PermitUpgradeable, IUsualUSDTB {
     /* ============ Structs, Variables, Modifiers ============ */
